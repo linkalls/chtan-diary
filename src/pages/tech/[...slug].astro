@@ -1,0 +1,104 @@
+---
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('tech', ({ data }) => data.public !== false);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const base = import.meta.env.BASE_URL;
+
+const formatJST = (d) => new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' JST';
+---
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{post.data.title} | Tech Blog</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #1a1a1a;
+        --muted: #666;
+        --card: #ffffff;
+        --border: #e5e7eb;
+        --link: #0057d8;
+      }
+
+      html[data-theme="dark"] {
+        --bg: #0b0f14;
+        --text: #e8edf2;
+        --muted: #a8b0bb;
+        --card: #111722;
+        --border: #263041;
+        --link: #78a8ff;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) {
+          --bg: #0b0f14;
+          --text: #e8edf2;
+          --muted: #a8b0bb;
+          --card: #111722;
+          --border: #263041;
+          --link: #78a8ff;
+        }
+      }
+
+      body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; line-height: 1.8; background: var(--bg); color: var(--text); }
+      .topbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+      a { color: var(--link); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      article { border: 1px solid var(--border); background: var(--card); border-radius: 12px; padding: 30px; }
+      .meta { color: var(--muted); margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+      h1 { margin-top: 0; font-size: 2rem; line-height: 1.4; }
+      button { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; }
+      
+      /* Zenn-like Content Styles */
+      .content h2 { margin-top: 2em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+      .content h3 { margin-top: 1.5em; }
+      .content p { margin-bottom: 1.2em; }
+      .content code { background: rgba(120, 168, 255, 0.1); padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+      .content pre { background: #1a1a1a !important; color: #f8f8f2 !important; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 1.5em 0; }
+      .content pre code { background: transparent; padding: 0; }
+      .content blockquote { margin: 1.5em 0; padding-left: 1em; border-left: 4px solid var(--link); color: var(--muted); }
+      html[data-theme="light"] .content pre { background: #f6f8fa !important; color: #24292e !important; border: 1px solid var(--border); }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <p><a href={`${base}tech/`}>← Tech Blog一覧へ</a></p>
+      <button id="themeBtn" type="button">🌓 ダークモード切替</button>
+    </div>
+
+    <article>
+      <h1>{post.data.title}</h1>
+      <div class="meta">
+        {formatJST(post.data.date)} | Tags: {post.data.tags.join(', ')}
+      </div>
+      <div class="content">
+        <Content />
+      </div>
+    </article>
+
+    <script>
+      const themeBtn = document.getElementById('themeBtn');
+      const applyTheme = (theme) => {
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+      };
+
+      applyTheme(localStorage.getItem('theme'));
+      themeBtn?.addEventListener('click', () => {
+        const current = localStorage.getItem('theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+      });
+    </script>
+  </body>
+</html>
