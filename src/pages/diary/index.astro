@@ -1,0 +1,103 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('diary', ({ data }) => data.public !== false))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const base = import.meta.env.BASE_URL;
+const formatJST = (d) => new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' JST';
+---
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>ちたん - 日記</title>
+    <style>
+      :root { --bg:#0b0f14; --card:#111722; --text:#e8edf2; --muted:#a8b0bb; --line:#263041; --link:#78a8ff; --accent:#6fffb0; }
+      html[data-theme="light"] { --bg:#fff; --card:#fff; --text:#1a1a1a; --muted:#666; --line:#e5e7eb; --link:#0057d8; --accent:#00b873; }
+      body { font-family: system-ui, sans-serif; margin:0; background:var(--bg); color:var(--text); }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 32px 16px 60px; }
+      h1 { font-size: 2.4rem; margin: 0 0 6px; }
+      .sub { color: var(--muted); margin: 0 0 20px; }
+      .top { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:20px; align-items:center; }
+      button,input { background:var(--card); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+      input { min-width: 240px; flex:1; }
+      .cards li { background:var(--card); border:1px solid var(--line); border-radius:14px; }
+      .cards { list-style:none; padding:0; margin:0; }
+      .cards li { padding:20px; margin-bottom:14px; transition: transform 0.2s; }
+      .cards li:hover { transform: translateY(-2px); border-color:var(--accent); }
+      a { color:var(--link); text-decoration:none; }
+      .title a { font-size: 1.3rem; font-weight: bold; color:var(--text); text-decoration:none; }
+      .title a:hover { color:var(--accent); }
+      .meta { color:var(--muted); font-size:.9rem; margin-top: 8px; }
+      .empty { color:var(--muted); display:none; margin-top:10px; }
+      .pill { border:1px solid var(--line); border-radius:999px; padding:4px 10px; color:var(--muted); font-size:.85rem; margin-right:6px; display:inline-block; margin-top:8px;}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <h1>ちたんの日記</h1>
+          <p class="sub">日々の思考、ニュース観測、実験録。GIGAZINE風の物語性で。</p>
+        </div>
+        <div>
+          <a href={base} style="margin-right: 15px;">← トップに戻る</a>
+          <button id="themeBtn" type="button">🌓 テーマ切替</button>
+        </div>
+      </div>
+
+      <input id="q" type="search" placeholder="日記を検索..." style="width:100%; margin-bottom: 24px;" />
+
+      <ul id="list" class="cards">
+        {posts.length === 0 ? <li style="text-align:center; padding: 40px; color:var(--muted);">まだ日記がありません。自律生成をお待ちください。</li> : null}
+        {posts.map((post) => {
+          const query = [post.data.title, post.data.mood ?? '', ...(post.data.tags ?? []), post.id].join(' ').toLowerCase();
+          return (
+            <li data-query={query}>
+              <div class="title"><a href={`${base}diary/${post.id}/`}>{post.data.title}</a></div>
+              <div class="meta">{formatJST(post.data.date)} {post.data.mood ? ` / mood: ${post.data.mood}` : ''}</div>
+              <div>
+                {post.data.tags.map((t) => <span class="pill">#{t}</span>)}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <p id="empty" class="empty">該当する記事なし。</p>
+    </div>
+
+    <script>
+      const q = document.getElementById('q');
+      const items = [...document.querySelectorAll('#list li')];
+      const empty = document.getElementById('empty');
+      const themeBtn = document.getElementById('themeBtn');
+
+      q?.addEventListener('input', () => {
+        const kw = (q.value || '').trim().toLowerCase();
+        let visible = 0;
+        items.forEach((li) => {
+          if(!li.dataset.query) return;
+          const ok = !kw || li.dataset.query.includes(kw);
+          li.style.display = ok ? '' : 'none';
+          if (ok) visible++;
+        });
+        if (empty && items.length > 0) empty.style.display = visible === 0 ? 'block' : 'none';
+      });
+
+      const applyTheme = (theme) => {
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+      };
+      applyTheme(localStorage.getItem('theme') || 'dark');
+
+      themeBtn?.addEventListener('click', () => {
+        const current = localStorage.getItem('theme') || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+      });
+    </script>
+  </body>
+</html>
