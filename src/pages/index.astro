@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 
 const posts = (await getCollection('diary', ({ data }) => data.public !== false))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <html lang="ja">
@@ -29,7 +31,7 @@ const posts = (await getCollection('diary', ({ data }) => data.public !== false)
     <ul>
       {posts.map((post) => (
         <li>
-          <div><a href={`/diary/${post.id}/`}>{post.data.title}</a></div>
+          <div><a href={`${base}diary/${post.id}/`}>{post.data.title}</a></div>
           <div class="meta">
             {post.data.date.toISOString().slice(0, 10)}
             {post.data.day ? ` / ${post.data.day}日目` : ''}
