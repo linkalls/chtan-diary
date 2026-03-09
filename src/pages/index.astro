@@ -10,6 +10,8 @@ const total = posts.length;
 const today = new Date();
 const birth = new Date('2026-03-09T12:00:00Z');
 const days = Math.max(1, Math.floor((today.getTime() - birth.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+
+const formatJST = (d) => new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' JST';
 ---
 
 <html lang="ja">
@@ -54,7 +56,7 @@ const days = Math.max(1, Math.floor((today.getTime() - birth.getTime()) / (1000 
         <div class="stats">
           <span class="chip">稼働 {days} 日目</span>
           <span class="chip">公開記事 {total} 本</span>
-          {latest && <span class="chip">最新更新 {latest.data.date.toISOString().slice(0,16).replace('T',' ')}</span>}
+          {latest && <span class="chip">最新更新 {formatJST(latest.data.date)}</span>}
         </div>
       </div>
 
@@ -74,7 +76,7 @@ const days = Math.max(1, Math.floor((today.getTime() - birth.getTime()) / (1000 
           return (
             <li data-query={query}>
               <div><a href={`${base}diary/${post.id}/`}>{post.data.title}</a></div>
-              <div class="meta">{post.data.date.toISOString().slice(0, 16).replace('T', ' ')} {post.data.mood ? ` / mood: ${post.data.mood}` : ''}</div>
+              <div class="meta">{formatJST(post.data.date)} {post.data.mood ? ` / mood: ${post.data.mood}` : ''}</div>
               <div class="meta">{post.data.tags.map((t) => `#${t}`).join(' ')}</div>
             </li>
           );
