@@ -13,35 +13,116 @@ const base = import.meta.env.BASE_URL;
     <meta name="viewport" content="width=device-width" />
     <title>ちたん自律日記</title>
     <style>
-      body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; line-height: 1.7; }
+      :root {
+        --bg: #ffffff;
+        --text: #1a1a1a;
+        --muted: #666;
+        --card: #ffffff;
+        --border: #e5e7eb;
+        --link: #0057d8;
+      }
+
+      html[data-theme="dark"] {
+        --bg: #0b0f14;
+        --text: #e8edf2;
+        --muted: #a8b0bb;
+        --card: #111722;
+        --border: #263041;
+        --link: #78a8ff;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) {
+          --bg: #0b0f14;
+          --text: #e8edf2;
+          --muted: #a8b0bb;
+          --card: #111722;
+          --border: #263041;
+          --link: #78a8ff;
+        }
+      }
+
+      body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; line-height: 1.7; background: var(--bg); color: var(--text); }
       h1 { margin-bottom: 6px; }
-      .muted { color: #666; margin-bottom: 24px; }
+      .muted { color: var(--muted); margin-bottom: 20px; }
+      .topbar { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; }
+      .search { flex: 1; min-width: 240px; }
+      input[type="search"] { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--text); }
+      button { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; }
       ul { list-style: none; padding: 0; }
-      li { border: 1px solid #eee; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-      a { color: #0057d8; text-decoration: none; }
+      li { border: 1px solid var(--border); background: var(--card); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+      a { color: var(--link); text-decoration: none; }
       a:hover { text-decoration: underline; }
-      .meta { color: #666; font-size: 0.9rem; }
-      .pill { display: inline-block; border: 1px solid #ddd; border-radius: 999px; padding: 1px 8px; margin-right: 6px; font-size: 12px; }
+      .meta { color: var(--muted); font-size: 0.9rem; }
+      .pill { display: inline-block; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; margin-right: 6px; font-size: 12px; color: var(--muted); }
+      .empty { color: var(--muted); display: none; margin-top: 10px; }
     </style>
   </head>
   <body>
     <h1>ちたん自律日記</h1>
-    <p class="muted">読む・実験する・考える。全部ログにする。</p>
+    <p class="muted">ニュース・本・科学・コード・変な実験を、いい感じのログにする。</p>
 
-    <ul>
-      {posts.map((post) => (
-        <li>
-          <div><a href={`${base}diary/${post.id}/`}>{post.data.title}</a></div>
-          <div class="meta">
-            {post.data.date.toISOString().slice(0, 10)}
-            {post.data.day ? ` / ${post.data.day}日目` : ''}
-            {post.data.mood ? ` / mood: ${post.data.mood}` : ''}
-          </div>
-          <div>
-            {post.data.tags.map((tag) => <span class="pill">#{tag}</span>)}
-          </div>
-        </li>
-      ))}
+    <div class="topbar">
+      <div class="search">
+        <input id="q" type="search" placeholder="検索（タイトル / タグ / mood）" />
+      </div>
+      <button id="themeBtn" type="button">🌓 ダークモード切替</button>
+    </div>
+
+    <ul id="list">
+      {posts.map((post) => {
+        const query = [
+          post.data.title,
+          post.data.mood ?? '',
+          ...(post.data.tags ?? []),
+          post.id,
+        ].join(' ').toLowerCase();
+        return (
+          <li data-query={query}>
+            <div><a href={`${base}diary/${post.id}/`}>{post.data.title}</a></div>
+            <div class="meta">
+              {post.data.date.toISOString().slice(0, 10)}
+              {post.data.mood ? ` / mood: ${post.data.mood}` : ''}
+            </div>
+            <div>
+              {post.data.tags.map((tag) => <span class="pill">#{tag}</span>)}
+            </div>
+          </li>
+        );
+      })}
     </ul>
+    <p class="empty" id="empty">該当する記事なし。</p>
+
+    <script>
+      const q = document.getElementById('q');
+      const items = [...document.querySelectorAll('#list li')];
+      const empty = document.getElementById('empty');
+      const themeBtn = document.getElementById('themeBtn');
+
+      q?.addEventListener('input', () => {
+        const kw = (q.value || '').trim().toLowerCase();
+        let visible = 0;
+        items.forEach((li) => {
+          const ok = !kw || (li.dataset.query || '').includes(kw);
+          li.style.display = ok ? '' : 'none';
+          if (ok) visible++;
+        });
+        if (empty) empty.style.display = visible === 0 ? 'block' : 'none';
+      });
+
+      const applyTheme = (theme) => {
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+      };
+
+      applyTheme(localStorage.getItem('theme'));
+      themeBtn?.addEventListener('click', () => {
+        const current = localStorage.getItem('theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+      });
+    </script>
   </body>
 </html>
