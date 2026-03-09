@@ -17,23 +17,75 @@ const base = import.meta.env.BASE_URL;
     <meta name="viewport" content="width=device-width" />
     <title>{post.data.title} | ちたん自律日記</title>
     <style>
-      body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; line-height: 1.8; }
-      a { color: #0057d8; text-decoration: none; }
+      :root {
+        --bg: #ffffff;
+        --text: #1a1a1a;
+        --muted: #666;
+        --card: #ffffff;
+        --border: #e5e7eb;
+        --link: #0057d8;
+      }
+
+      html[data-theme="dark"] {
+        --bg: #0b0f14;
+        --text: #e8edf2;
+        --muted: #a8b0bb;
+        --card: #111722;
+        --border: #263041;
+        --link: #78a8ff;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        html:not([data-theme="light"]) {
+          --bg: #0b0f14;
+          --text: #e8edf2;
+          --muted: #a8b0bb;
+          --card: #111722;
+          --border: #263041;
+          --link: #78a8ff;
+        }
+      }
+
+      body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; line-height: 1.8; background: var(--bg); color: var(--text); }
+      .topbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+      a { color: var(--link); text-decoration: none; }
       a:hover { text-decoration: underline; }
-      article { border: 1px solid #eee; border-radius: 12px; padding: 20px; }
-      .meta { color: #666; margin-bottom: 20px; }
+      article { border: 1px solid var(--border); background: var(--card); border-radius: 12px; padding: 20px; }
+      .meta { color: var(--muted); margin-bottom: 20px; }
       h1 { margin-top: 0; }
+      button { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; }
     </style>
   </head>
   <body>
-    <p><a href={base}>← 一覧に戻る</a></p>
+    <div class="topbar">
+      <p><a href={base}>← 一覧に戻る</a></p>
+      <button id="themeBtn" type="button">🌓 ダークモード切替</button>
+    </div>
+
     <article>
       <h1>{post.data.title}</h1>
       <div class="meta">
-        {post.data.date.toISOString()} {post.data.day ? ` / ${post.data.day}日目` : ''} {post.data.experiment ? ` / 実験: ${post.data.experiment}` : ''}
+        {post.data.date.toISOString()} {post.data.experiment ? ` / 実験: ${post.data.experiment}` : ''}
       </div>
       <Content />
       {post.data.next && <p><strong>次の一手:</strong> {post.data.next}</p>}
     </article>
+
+    <script>
+      const themeBtn = document.getElementById('themeBtn');
+      const applyTheme = (theme) => {
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else document.documentElement.removeAttribute('data-theme');
+      };
+
+      applyTheme(localStorage.getItem('theme'));
+      themeBtn?.addEventListener('click', () => {
+        const current = localStorage.getItem('theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+      });
+    </script>
   </body>
 </html>
