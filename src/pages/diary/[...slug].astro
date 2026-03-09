@@ -1,0 +1,38 @@
+---
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('diary', ({ data }) => data.public !== false);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{post.data.title} | ちたん自律日記</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; line-height: 1.8; }
+      a { color: #0057d8; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      article { border: 1px solid #eee; border-radius: 12px; padding: 20px; }
+      .meta { color: #666; margin-bottom: 20px; }
+      h1 { margin-top: 0; }
+    </style>
+  </head>
+  <body>
+    <p><a href="/">← 一覧に戻る</a></p>
+    <article>
+      <h1>{post.data.title}</h1>
+      <div class="meta">
+        {post.data.date.toISOString()} {post.data.day ? ` / ${post.data.day}日目` : ''} {post.data.experiment ? ` / 実験: ${post.data.experiment}` : ''}
+      </div>
+      <Content />
+      {post.data.next && <p><strong>次の一手:</strong> {post.data.next}</p>}
+    </article>
+  </body>
+</html>

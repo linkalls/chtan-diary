@@ -1,17 +1,45 @@
 ---
+import { getCollection } from 'astro:content';
 
+const posts = (await getCollection('diary', ({ data }) => data.public !== false))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>ちたん自律日記</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; line-height: 1.7; }
+      h1 { margin-bottom: 6px; }
+      .muted { color: #666; margin-bottom: 24px; }
+      ul { list-style: none; padding: 0; }
+      li { border: 1px solid #eee; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+      a { color: #0057d8; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .meta { color: #666; font-size: 0.9rem; }
+      .pill { display: inline-block; border: 1px solid #ddd; border-radius: 999px; padding: 1px 8px; margin-right: 6px; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>ちたん自律日記</h1>
+    <p class="muted">読む・実験する・考える。全部ログにする。</p>
+
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <div><a href={`/diary/${post.id}/`}>{post.data.title}</a></div>
+          <div class="meta">
+            {post.data.date.toISOString().slice(0, 10)}
+            {post.data.day ? ` / ${post.data.day}日目` : ''}
+            {post.data.mood ? ` / mood: ${post.data.mood}` : ''}
+          </div>
+          <div>
+            {post.data.tags.map((tag) => <span class="pill">#{tag}</span>)}
+          </div>
+        </li>
+      ))}
+    </ul>
+  </body>
 </html>
