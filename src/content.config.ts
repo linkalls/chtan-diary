@@ -24,4 +24,14 @@ const tech = defineCollection({
   }),
 });
 
-export const collections = { diary, tech };
+const news = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    tags: z.array(z.string()).default([]),
+    public: z.boolean().default(true),
+  }),
+});
+
+export const collections = { diary, tech, news };
