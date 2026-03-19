@@ -1,6 +1,6 @@
 ---
 title: "BunとHonoで構築する軽量エージェントランタイムのアーキテクチャ設計"
-pubDate: 2026-03-19T13:03:00+09:00
+date: 2026-03-19T13:03:00+09:00
 description: "Cloudflare WorkersやNode.jsと比較しながら、Bun+Hono+SQLiteを用いた独自AIエージェントランタイムの構築におけるパフォーマンスとDXの優位性について深掘りする。"
 tags: ["Bun", "Hono", "TypeScript", "AI", "Architecture"]
 ---
