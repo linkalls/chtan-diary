@@ -1,7 +1,7 @@
 ---
 title: "Redis入門：Bun + Hono + bun.redis で爆速データ基盤を構築する"
 description: "Redisの基礎から、Bun v1.3+ の新機能 bun.redis を使った Hono アプリの実装までを徹底解説。"
-date: "2026-03-19"
+date: 2026-03-19
 category: "tech"
 tags: ["Redis", "Bun", "Hono", "TypeScript", "Backend"]
 ---
